@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"github.com/MondayHopscotch/JumpCloudCodeChallenge/internal/app"
 	"os"
+	"os/signal"
 	"strconv"
+	"syscall"
 )
 
 func main() {
@@ -20,5 +22,13 @@ func main() {
 		os.Exit(1)
 	}
 	hashService := app.NewHashService(portInt)
+
+	ctrlC := make(chan os.Signal)
+	signal.Notify(ctrlC, os.Interrupt, syscall.SIGTERM)
+	go func() {
+		<-ctrlC
+		fmt.Println("Interrupt caught, requesting shutdown")
+		hashService.Stop()
+	}()
 	hashService.Start()
 }

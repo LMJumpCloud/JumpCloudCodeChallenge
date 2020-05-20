@@ -12,6 +12,7 @@ import (
 type HashService struct {
 	router *routing.Router
 	hashStore *hashing.HashStore
+	done chan struct{}
 }
 
 // NewHashService returns a new instance of HashService
@@ -19,6 +20,7 @@ func NewHashService(port int) *HashService {
 	return &HashService{
 		router:    routing.NewRouter(port),
 		hashStore: hashing.NewHashStore(),
+		done: make(chan struct{}, 0),
 	}
 }
 
@@ -31,6 +33,7 @@ func (h *HashService) Start() {
 		"/shutdown": h.shutdownHandler,
 	})
 	h.router.Serve()
+	<-h.done
 }
 
 func (h *HashService) shutdownHandler(writer http.ResponseWriter, req *http.Request) {
@@ -41,12 +44,17 @@ func (h *HashService) shutdownHandler(writer http.ResponseWriter, req *http.Requ
 	go h.Stop()
 }
 
-// Stop shuts down the HTTP server
+// Stop shuts down the HTTP server gracefully and waits for all pending password hashes to finish
 func (h *HashService) Stop() {
+	fmt.Println("Hash Service shutting down")
 	err := h.router.Shutdown()
 	if err != nil {
 		fmt.Println("ERROR: error while shutting down router: ", err)
 	}
+	fmt.Println("HTTP Server shutdown")
 
 	h.hashStore.Flush()
+	fmt.Println("All hash processing finished")
+
+	h.done<-struct{}{}
 }
