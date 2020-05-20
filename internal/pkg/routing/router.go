@@ -83,37 +83,11 @@ func (r *Router) AvailablePaths() []string {
 // request to the correct underlying handler for processing
 func (r *Router) ServeHTTP(writer http.ResponseWriter, req *http.Request) {
 	req.ParseForm()
-	pathSplits := SplitPath(req.URL.Path)
-	match := r.checkPathMatch(pathSplits)
-	if match != nil {
-		rigRequest(req, match)
-	}
-	r.mux.ServeHTTP(writer, req)
-}
-
-func (r *Router) checkPathMatch(in []string) *ParameterizedPath {
-	var matchFound bool
-	for _, path := range r.paramPaths {
-		if path.Length == len(in) {
-			matchFound = true
-			for i, segment := range path.Route {
-				if in[i] != segment {
-					matchFound = false
-				}
-			}
-			if matchFound {
-				return path
-			}
+	for _, paramPath := range r.paramPaths {
+		if paramPath.ParseRequest(req) {
+			// Request has been updated. No more work needs to be done before serving
+			break
 		}
 	}
-
-	return nil
-}
-
-func rigRequest(req *http.Request, pathParams *ParameterizedPath) {
-	pathSplits := SplitPath(req.URL.Path)
-	for i, s := range pathParams.Subs {
-		req.Form.Add(s, pathSplits[i])
-	}
-	req.URL.Path = pathParams.Path
+	r.mux.ServeHTTP(writer, req)
 }

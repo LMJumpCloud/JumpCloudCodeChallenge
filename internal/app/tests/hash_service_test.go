@@ -66,6 +66,8 @@ func TestHashService(t *testing.T) {
 		test.AssertNil(t, err, "HTTP error should be null")
 		test.AssertEqual(t, resp.StatusCode, 200, "after wait, hash should be available")
 		resp.Body.Close()
+
+		service.Stop()
 	})
 }
 

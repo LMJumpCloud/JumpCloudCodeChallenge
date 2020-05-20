@@ -4,15 +4,29 @@ import (
 	"github.com/MondayHopscotch/JumpCloudCodeChallenge/internal/pkg/hashing"
 	"github.com/MondayHopscotch/JumpCloudCodeChallenge/internal/pkg/test"
 	"testing"
+	"time"
 )
 
-const input = "password"
+func TestHashStore(t *testing.T) {
+	t.Run("hash ID increment", func(t *testing.T) {
+		store := hashing.NewHashStore()
+		test.AssertEqual(t, store.SubmitPassword("first"), int64(1), "first hash has id 1")
+		test.AssertEqual(t, store.SubmitPassword("second"), int64(2), "second hash has id 2")
+		test.AssertEqual(t, store.SubmitPassword("third"), int64(3), "third hash has id 3")
+	})
 
-// raw hash: "b109f3bbbc244eb82441917ed06d618b9008dd09b3befd1b5e07394c706a8bb980b1d7785e5976ec049b46df5f1326af5a2ea6d103fd07c95385ffab0cacbc86"
-const knownSHA512HashBase64 = "YjEwOWYzYmJiYzI0NGViODI0NDE5MTdlZDA2ZDYxOGI5MDA4ZGQwOWIzYmVmZDFiNWUwNzM5NGM3MDZhOGJiOTgwYjFkNzc4NWU1OTc2ZWMwNDliNDZkZjVmMTMyNmFmNWEyZWE2ZDEwM2ZkMDdjOTUzODVmZmFiMGNhY2JjODY="
+	t.Run("store returns empty for missing ID", func(t *testing.T) {
+		store := hashing.NewHashStore()
+		test.AssertEqual(t, store.GetHash(2), "", "empty string for bad ID")
+	})
 
-func TestHasher(t *testing.T) {
-	t.Run("generate hash", func(t *testing.T) {
-		test.AssertEqual(t, hashing.GetHash(input), knownSHA512HashBase64, "correctly generates SHA512 hash")
+	t.Run("store returns hash for ID", func(t *testing.T) {
+		store := hashing.NewHashStore()
+		test.AssertEqual(t, store.ForcePassword(input), int64(1), "first hash has id 1")
+
+		// as the inner implementation still uses a goroutine, wait just a moment to let the hash be submitted
+		time.Sleep(100 * time.Millisecond)
+
+		test.AssertEqual(t, store.GetHash(1), knownSHA512HashBase64, "matching hash")
 	})
 }

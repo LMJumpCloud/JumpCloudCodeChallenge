@@ -29,9 +29,19 @@ func (h *HashStore) getNextPasswordID() int64 {
 // SubmitPassword accepts new passwords to be hashed, returning the ID so that the hash can be
 // retrieved after processing has finished
 func (h *HashStore) SubmitPassword(pass string) int64 {
+	return h.waitAndStoreHash(pass, 5 * time.Second)
+}
+
+// ForcePassword accepts new passwords without any processing time, inserting them into the store
+// immediately
+func (h *HashStore) ForcePassword(pass string) int64 {
+	return h.waitAndStoreHash(pass, 0)
+}
+
+func (h *HashStore) waitAndStoreHash(pass string, pause time.Duration) int64 {
 	id := h.getNextPasswordID()
 	go func() {
-		time.Sleep(5 * time.Second)
+		time.Sleep(pause)
 		h.mapLock.Lock()
 		defer h.mapLock.Unlock()
 		h.availableHashes[id] = GetHash(pass)

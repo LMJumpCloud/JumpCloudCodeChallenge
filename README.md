@@ -1,7 +1,9 @@
 # JumpCloud Code Problem
 
 ## Tools:
-- Only using packages available in the golang standard libarary
+* **Postman** - Used to test endpoints
+* **https://md5decrypt.net/en/Sha512/** - Used as a third-party verification/sanity check for hashing
+* **https://www.base64decode.org/** - Used as a third-party verification/sanity check for Base64 conversions
 
 ## Challenges
 
