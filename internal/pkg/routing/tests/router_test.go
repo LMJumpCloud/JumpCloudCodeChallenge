@@ -36,16 +36,12 @@ func TestRouting(t *testing.T) {
 		r := routing.NewRouter(8098)
 		r.RegisterPaths(map[string]http.HandlerFunc{
 			"/test": func(writer http.ResponseWriter, request *http.Request) {
-				writer.Write([]byte("helloWorld"))
 				writer.WriteHeader(200)
+				writer.Write([]byte("helloWorld"))
 			},
 		})
 
-		r.Serve()
-		defer func() {
-			err := r.Shutdown()
-			test.AssertNil(t, err, "no server close error expected")
-		}()
+		go r.Serve()
 
 		resp, err := http.Get("http://127.0.0.1:8098/test")
 		test.AssertNil(t, err, "no error on http GET")
@@ -54,5 +50,8 @@ func TestRouting(t *testing.T) {
 
 		body, err := ioutil.ReadAll(resp.Body)
 		test.AssertEqual(t, string(body), "helloWorld", "hello world body")
+
+		err = r.Shutdown()
+		test.AssertNil(t, err, "no server close error expected")
 	})
 }

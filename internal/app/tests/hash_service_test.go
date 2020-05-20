@@ -14,8 +14,8 @@ import (
 func TestHashService(t *testing.T) {
 	t.Run("hash endpoint supports PUT", func(t *testing.T) {
 		port := 50123
-		service := app.New(port)
-		service.Start()
+		service := app.NewHashService(port)
+		go service.Start()
 
 		resp, err := postPassword("password", port)
 		test.AssertNil(t, err, "HTTP error should be null")
@@ -40,8 +40,8 @@ func TestHashService(t *testing.T) {
 
 	t.Run("able to retrieve hash", func(t *testing.T) {
 		port := 50124
-		service := app.New(port)
-		service.Start()
+		service := app.NewHashService(port)
+		go service.Start()
 
 		resp, err := postPassword("password", port)
 		test.AssertNil(t, err, "HTTP error should be null")
@@ -55,12 +55,14 @@ func TestHashService(t *testing.T) {
 		resp, err = http.Get(fmt.Sprintf("http://localhost:%v/hash/%v", port, expectedID))
 		test.AssertNil(t, err, "HTTP error should be null")
 		test.AssertEqual(t, resp.StatusCode, 404, "immediate query should be not found")
+		bodyBytes, err := ioutil.ReadAll(resp.Body)
+		test.AssertEqual(t, string(bodyBytes), "no hash for id '1' available", "body indicates error")
 		resp.Body.Close()
 
 		// sleeping in tests should generally be avoided
-		time.Sleep(5 * time.Second)
+		time.Sleep(6 * time.Second)
 
-		resp, err = http.Get("http://localhost:8096/hash/1")
+		resp, err = http.Get(fmt.Sprintf("http://localhost:%v/hash/%v", port, expectedID))
 		test.AssertNil(t, err, "HTTP error should be null")
 		test.AssertEqual(t, resp.StatusCode, 200, "after wait, hash should be available")
 		resp.Body.Close()

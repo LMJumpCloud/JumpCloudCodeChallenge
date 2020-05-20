@@ -11,6 +11,7 @@ import (
 type Router struct {
 	mux *http.ServeMux
 	registeredPaths map[string]http.HandlerFunc
+	paramPaths []*ParameterizedPath
 
 	port int
 	srv *http.Server
@@ -27,7 +28,7 @@ func NewRouter(port int) *Router {
 	}
 	srv := &http.Server{
 		Addr:              fmt.Sprintf(":%d", port),
-		Handler: router.mux,
+		Handler: router,
 	}
 	router.srv = srv
 	return router
@@ -35,9 +36,8 @@ func NewRouter(port int) *Router {
 
 // Serve starts the router as an http server
 func (r *Router) Serve() {
-	go func() {
-		r.errChan<-r.srv.ListenAndServe()
-	}()
+	fmt.Println("Server starting on port:", r.port)
+	r.errChan<-r.srv.ListenAndServe()
 }
 
 func (r *Router) Shutdown() error {
@@ -52,6 +52,9 @@ func (r *Router) Shutdown() error {
 // RegisterPaths registers the provided paths with this router
 func (r *Router) RegisterPaths(routes map[string]http.HandlerFunc) {
 	for path, handler := range routes {
+		if IsParameterizedPath(path) {
+			r.paramPaths = append(r.paramPaths, ParseParameterizedPath(path))
+		}
 		r.registeredPaths[path] = handler
 		r.mux.HandleFunc(path, handler)
 	}
@@ -66,4 +69,41 @@ func (r *Router) AvailablePaths() []string {
 	}
 	sort.Strings(paths)
 	return paths
+}
+
+func (r *Router) ServeHTTP(writer http.ResponseWriter, req *http.Request) {
+	req.ParseForm()
+	pathSplits := SplitPath(req.URL.Path)
+	match := r.checkPathMatch(pathSplits)
+	if match != nil {
+		rigRequest(req, match)
+	}
+	r.mux.ServeHTTP(writer, req)
+}
+
+func (r *Router) checkPathMatch(in []string) *ParameterizedPath {
+	var matchFound bool
+	for _, path := range r.paramPaths {
+		if path.Length == len(in) {
+			matchFound = true
+			for i, segment := range path.Route {
+				if in[i] != segment {
+					matchFound = false
+				}
+			}
+			if matchFound {
+				return path
+			}
+		}
+	}
+
+	return nil
+}
+
+func rigRequest(req *http.Request, pathParams *ParameterizedPath) {
+	pathSplits := SplitPath(req.URL.Path)
+	for i, s := range pathParams.Subs {
+		req.Form.Add(s, pathSplits[i])
+	}
+	req.URL.Path = pathParams.Path
 }
