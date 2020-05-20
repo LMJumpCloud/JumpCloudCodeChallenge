@@ -69,6 +69,23 @@ func TestHashService(t *testing.T) {
 
 		service.Stop()
 	})
+
+	t.Run("test shutdown call", func(t *testing.T) {
+		port := 50125
+		service := app.NewHashService(port)
+		go service.Start()
+
+		resp, err := http.Get(fmt.Sprintf("http://localhost:%v/shutdown", port))
+		test.AssertNil(t, err, "HTTP error should be null")
+		test.AssertEqual(t, resp.StatusCode, 200, "request accepted ok")
+
+		bodyBytes, err := ioutil.ReadAll(resp.Body)
+		test.AssertEqual(t, string(bodyBytes), "server shutting down", "body indicates shutdown started")
+		resp.Body.Close()
+
+		resp, err = postPassword("password", port)
+		test.AssertNotNil(t, err, "HTTP should be rejected resulting in error")
+	})
 }
 
 func postPassword(pw string, port int) (*http.Response, error) {

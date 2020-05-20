@@ -22,3 +22,12 @@ func AssertNil(t *testing.T, value interface{}, message string) {
 
 	t.Fatal(fmt.Sprintf("%v != nil: %s", value, message))
 }
+
+// AssertNotNil fails the test if value is nil, otherwise does nothing
+func AssertNotNil(t *testing.T, value interface{}, message string) {
+	if value != nil {
+		return
+	}
+
+	t.Fatal(fmt.Sprintf("%v == nil: %s", value, message))
+}

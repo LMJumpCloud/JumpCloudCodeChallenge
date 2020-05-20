@@ -28,8 +28,17 @@ func (h *HashService) Start() {
 	h.router.RegisterPaths(map[string]http.HandlerFunc{
 		"/hash": hashEndpoint.Handler,
 		"/hash/{id}": hashEndpoint.Handler,
+		"/shutdown": h.shutdownHandler,
 	})
 	h.router.Serve()
+}
+
+func (h *HashService) shutdownHandler(writer http.ResponseWriter, req *http.Request) {
+	writer.WriteHeader(http.StatusOK)
+	writer.Write([]byte("server shutting down"))
+
+	// call this in a goroutine so this request can return correctly
+	go h.Stop()
 }
 
 // Stop shuts down the HTTP server
@@ -38,4 +47,6 @@ func (h *HashService) Stop() {
 	if err != nil {
 		fmt.Println("ERROR: error while shutting down router: ", err)
 	}
+
+	h.hashStore.Flush()
 }
