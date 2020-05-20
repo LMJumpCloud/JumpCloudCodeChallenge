@@ -9,6 +9,16 @@
 To run the Hashing service:
 ```go run cmd/main.go <port>```
 
+## Project Layout
+
+```
+root/
+ ├─ cmd/        Houses entrypoint into the software
+ └─ internal/
+      ├─ app/   Application specific code, such as construction of service, endpoints, etc
+      └─ pkg/   Reusable modules of code, such as string parsing
+```
+
 ## Design Decisions
 * Rather than only providing statistics for `POST`s against the `/hash` endpoint, my service will provide simple metrics for all endpoints
 on the service.

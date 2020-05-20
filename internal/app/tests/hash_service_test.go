@@ -1,8 +1,10 @@
 package tests
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/MondayHopscotch/JumpCloudCodeChallenge/internal/app"
+	"github.com/MondayHopscotch/JumpCloudCodeChallenge/internal/pkg/stats"
 	"github.com/MondayHopscotch/JumpCloudCodeChallenge/internal/pkg/test"
 	"io/ioutil"
 	"net/http"
@@ -85,6 +87,29 @@ func TestHashService(t *testing.T) {
 
 		resp, err = postPassword("password", port)
 		test.AssertNotNil(t, err, "HTTP should be rejected resulting in error")
+	})
+
+	t.Run("test stats call", func(t *testing.T) {
+		port := 50125
+		service := app.NewHashService(port)
+		go service.Start()
+
+		resp, err := postPassword("password", port)
+		test.AssertNil(t, err, "HTTP error should be null")
+		test.AssertEqual(t, resp.StatusCode, 201, "201 indicating password hash created")
+
+		resp, err = http.Get(fmt.Sprintf("http://localhost:%v/stats", port))
+		test.AssertNil(t, err, "HTTP error should be null")
+		test.AssertEqual(t, resp.StatusCode, 200, "request accepted ok")
+
+		bodyBytes, err := ioutil.ReadAll(resp.Body)
+
+		statsList := make([]stats.Average, 1)
+		err = json.Unmarshal(bodyBytes, &statsList)
+		test.AssertNil(t, err, "body should be valid json")
+
+		test.AssertEqual(t, statsList[0].Name, "/hash POST", "properly report POST call name")
+		test.AssertEqual(t, statsList[0].Total, 1, "properly report POST call count")
 	})
 }
 
