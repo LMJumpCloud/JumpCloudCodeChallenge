@@ -47,7 +47,7 @@ func (a *AverageTracker) GetAverages() []Average {
 		avgs[i] = Average{
 			Name:        name,
 			Total: tracker.totalCount,
-			AvgMicroSec: int64(tracker.totalTime / time.Duration(tracker.totalCount) / time.Microsecond),
+			AvgMicroSec: int64(tracker.totalTime / time.Microsecond / time.Duration(tracker.totalCount) ),
 		}
 		i++
 	}

@@ -96,6 +96,7 @@ func (r *Router) AvailablePaths() []string {
 // ServeHTTP looks at all incoming requests and handles parsing any parameterized paths before passing the
 // request to the correct underlying handler for processing
 func (r *Router) ServeHTTP(writer http.ResponseWriter, req *http.Request) {
+	timer := time.Now()
 	req.ParseForm()
 	for _, paramPath := range r.paramPaths {
 		if paramPath.ParseRequest(req) {
@@ -104,7 +105,6 @@ func (r *Router) ServeHTTP(writer http.ResponseWriter, req *http.Request) {
 		}
 	}
 
-	timer := time.Now()
 	r.mux.ServeHTTP(writer, req)
 	r.stats.AddCycleTime(fmt.Sprintf("%v %v", req.URL.Path, req.Method), time.Since(timer))
 }
