@@ -2,9 +2,12 @@ package routing
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"github.com/MondayHopscotch/JumpCloudCodeChallenge/internal/pkg/stats"
 	"net/http"
 	"sort"
+	"time"
 )
 
 // Router holds route and server state
@@ -12,6 +15,8 @@ type Router struct {
 	mux *http.ServeMux
 	registeredPaths map[string]http.HandlerFunc
 	paramPaths []*ParameterizedPath
+
+	stats *stats.AverageTracker
 
 	port int
 	srv *http.Server
@@ -23,6 +28,7 @@ func NewRouter(port int) *Router {
 	router := &Router{
 		mux: http.NewServeMux(),
 		registeredPaths: make(map[string]http.HandlerFunc),
+		stats: stats.NewAverageTracker(),
 		port: port,
 		errChan: make(chan error, 0),
 	}
@@ -32,6 +38,14 @@ func NewRouter(port int) *Router {
 	}
 	router.srv = srv
 	return router
+}
+
+// RegisterStatsEndpoint registers a self-reporting statistics endpoint to show timing metrics on all endpoints
+// registered with this router
+func (r *Router) RegisterStatsEndpoint() {
+	r.RegisterPaths(map[string]http.HandlerFunc{
+		"/stats": r.selfStatsHandler,
+	})
 }
 
 // Serve starts the router as an http server
@@ -89,5 +103,27 @@ func (r *Router) ServeHTTP(writer http.ResponseWriter, req *http.Request) {
 			break
 		}
 	}
+
+	timer := time.Now()
 	r.mux.ServeHTTP(writer, req)
+	r.stats.AddCycleTime(fmt.Sprintf("%v %v", req.URL.Path, req.Method), time.Since(timer))
+}
+
+func (r *Router) selfStatsHandler(writer http.ResponseWriter, req *http.Request) {
+	if req.Method != http.MethodGet {
+		writer.WriteHeader(http.StatusMethodNotAllowed)
+		return
+	}
+
+	avgs := r.stats.GetAverages()
+	jsonBytes, err := json.Marshal(avgs)
+	if err != nil {
+		fmt.Println(err)
+		writer.WriteHeader(503)
+		writer.Write([]byte("failed to generate averages data"))
+		return
+	}
+
+	writer.WriteHeader(200)
+	writer.Write(jsonBytes)
 }

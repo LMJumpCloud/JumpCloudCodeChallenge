@@ -28,10 +28,11 @@ func NewHashService(port int) *HashService {
 func (h *HashService) Start() {
 	hashEndpoint := endpoints.HashEndpointForStore(h.hashStore)
 	h.router.RegisterPaths(map[string]http.HandlerFunc{
-		"/hash": hashEndpoint.Handler,
-		"/hash/{id}": hashEndpoint.Handler,
+		"/hash": hashEndpoint.HandlePost,
+		"/hash/{id}": hashEndpoint.HandleGet,
 		"/shutdown": h.shutdownHandler,
 	})
+	h.router.RegisterStatsEndpoint()
 	h.router.Serve()
 	<-h.done
 }

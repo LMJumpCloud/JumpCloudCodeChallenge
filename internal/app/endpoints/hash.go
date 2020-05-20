@@ -17,19 +17,13 @@ func HashEndpointForStore(store *hashing.HashStore) *HashEndpoint {
 	return &HashEndpoint{store: store}
 }
 
-// Handler is the HTTP server tie-in to handle requests
-func (he *HashEndpoint) Handler(writer http.ResponseWriter, req *http.Request) {
-	switch req.Method {
-	case http.MethodPost:
-		he.handlePost(writer, req)
-	case http.MethodGet:
-		he.handleGet(writer, req)
-	default:
+// HandlePost is responsible for submitting new passwords to be hashed
+func (he *HashEndpoint) HandlePost(writer http.ResponseWriter, req *http.Request) {
+	if req.Method != http.MethodPost {
 		writer.WriteHeader(http.StatusMethodNotAllowed)
+		return
 	}
-}
 
-func (he *HashEndpoint) handlePost(writer http.ResponseWriter, req *http.Request) {
 	err := req.ParseForm()
 	if err != nil {
 		writer.WriteHeader(http.StatusBadRequest)
@@ -49,7 +43,13 @@ func (he *HashEndpoint) handlePost(writer http.ResponseWriter, req *http.Request
 
 }
 
-func (he *HashEndpoint) handleGet(writer http.ResponseWriter, req *http.Request) {
+// HandleGet is responsible for getting hashes out of the store
+func (he *HashEndpoint) HandleGet(writer http.ResponseWriter, req *http.Request) {
+	if req.Method != http.MethodGet {
+		writer.WriteHeader(http.StatusMethodNotAllowed)
+		return
+	}
+
 	err := req.ParseForm()
 	if err != nil {
 		writer.WriteHeader(http.StatusBadRequest)
