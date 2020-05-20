@@ -8,11 +8,13 @@ import (
 	"net/http"
 )
 
+// HashService ties the router and the hash store together
 type HashService struct {
 	router *routing.Router
 	hashStore *hashing.HashStore
 }
 
+// NewHashService returns a new instance of HashService
 func NewHashService(port int) *HashService {
 	return &HashService{
 		router:    routing.NewRouter(port),
@@ -20,6 +22,7 @@ func NewHashService(port int) *HashService {
 	}
 }
 
+// Start will register all endpoints and start the HTTP server
 func (h *HashService) Start() {
 	hashEndpoint := endpoints.HashEndpointForStore(h.hashStore)
 	h.router.RegisterPaths(map[string]http.HandlerFunc{
@@ -29,6 +32,7 @@ func (h *HashService) Start() {
 	h.router.Serve()
 }
 
+// Stop shuts down the HTTP server
 func (h *HashService) Stop() {
 	err := h.router.Shutdown()
 	if err != nil {

@@ -40,6 +40,9 @@ func (r *Router) Serve() {
 	r.errChan<-r.srv.ListenAndServe()
 }
 
+// Shutdown calls shutdown on the HTTP server, blocking until shutdown has finished, returning any error that occurs.
+// If the error is http.ErrServerClosed, nil is returned instead as this is the expected error and indicates a clean
+// shutdown of the server
 func (r *Router) Shutdown() error {
 	r.srv.Shutdown(context.Background())
 	shutdownErr := <-r.errChan
@@ -60,17 +63,24 @@ func (r *Router) RegisterPaths(routes map[string]http.HandlerFunc) {
 	}
 }
 
+// AvailablePaths returns all registered paths for this server
 func (r *Router) AvailablePaths() []string {
-	paths := make([]string, len(r.registeredPaths))
+	paths := make([]string, len(r.registeredPaths) + len(r.paramPaths))
 	i := 0
-	for path, _ := range r.registeredPaths {
+	for path := range r.registeredPaths {
 		paths[i] = path
+		i++
+	}
+	for _, path := range r.paramPaths {
+		paths[i] = path.Path
 		i++
 	}
 	sort.Strings(paths)
 	return paths
 }
 
+// ServeHTTP looks at all incoming requests and handles parsing any parameterized paths before passing the
+// request to the correct underlying handler for processing
 func (r *Router) ServeHTTP(writer http.ResponseWriter, req *http.Request) {
 	req.ParseForm()
 	pathSplits := SplitPath(req.URL.Path)

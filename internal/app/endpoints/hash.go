@@ -7,14 +7,17 @@ import (
 	"strconv"
 )
 
+// HashEndpoint is a wrapper around the hash endpoint and its interaction with the HashStore
 type HashEndpoint struct {
 	store *hashing.HashStore
 }
 
+// HashEndpointForStore returns a new instance of HashEndpoint based on the provided HashStore
 func HashEndpointForStore(store *hashing.HashStore) *HashEndpoint {
 	return &HashEndpoint{store: store}
 }
 
+// Handler is the HTTP server tie-in to handle requests
 func (he *HashEndpoint) Handler(writer http.ResponseWriter, req *http.Request) {
 	switch req.Method {
 	case http.MethodPost:
