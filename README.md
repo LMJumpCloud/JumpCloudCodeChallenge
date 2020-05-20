@@ -6,17 +6,26 @@
 * Golang version 1.13
 
 #### Running the service
-To run the Hashing service:
+To run the Hashing service, run the following command from the root of the project:
 ```go run cmd/main.go <port>```
+
+#### Running the tests
+To run the unit tests, run the following from the root of the project:
+```go test ./...```
+
+Using Postman:
+* located in `/test` is a Postman collection with some simple requests to make calling the service
+easier. The tests as committed assume the service is running on port 8088
 
 ## Project Layout
 
 ```
 root/
- ├─ cmd/        Houses entrypoint into the software
- └─ internal/
-      ├─ app/   Application specific code, such as construction of service, endpoints, etc
-      └─ pkg/   Reusable modules of code, such as string parsing
+ ├─ cmd/         Houses the entrypoint(s) into the software
+ ├─ internal/
+ |     ├─ app/   Application-specific code, such as construction of service, endpoints, etc
+ |     └─ pkg/   Reusable modules of code, such as string parsing
+ └─ test/        External testing, namely Postman collection
 ```
 
 ## Design Decisions
@@ -26,7 +35,10 @@ on the service.
         * Metrics are now available for insights into incorrect endpoint calls
             * Wrong method for given endpoint
             * Misspelled / incorrect endpoints
-        * This could provide insight as to how users are trying to use the service that we haven't accounted for
+        * This could provide insight as to how users are trying to use the service not yet accounted for
+* Hashes stored in-memory, though the service architecture will safely handle flushing to disc on shut-down if a different storage
+mechanism were to be introduced.
+* HTTP endpoint tests use the HTTP package directly running against an instance of the service
 
 ## Tools
 * **go mod** - Intended to help portability of repository, currently only specifies golang version due to only using the standard library
