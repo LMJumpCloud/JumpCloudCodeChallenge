@@ -1,8 +1,8 @@
-package app
+package hash_service
 
 import (
 	"fmt"
-	"github.com/MondayHopscotch/JumpCloudCodeChallenge/internal/app/endpoints"
+	"github.com/MondayHopscotch/JumpCloudCodeChallenge/internal/app/hash_service/endpoints"
 	"github.com/MondayHopscotch/JumpCloudCodeChallenge/internal/pkg/hashing"
 	"github.com/MondayHopscotch/JumpCloudCodeChallenge/internal/pkg/routing"
 	"net/http"
@@ -11,15 +11,15 @@ import (
 // HashService ties the router and the hash store together
 type HashService struct {
 	router *routing.Router
-	hashStore *hashing.HashStore
+	hashStore *hashing.InMemoryHashStore
 	done chan struct{}
 }
 
-// NewHashService returns a new instance of HashService
-func NewHashService(port int) *HashService {
+// New returns a new instance of HashService
+func New(port int) *HashService {
 	return &HashService{
 		router:    routing.NewRouter(port),
-		hashStore: hashing.NewHashStore(),
+		hashStore: hashing.NewInMemoryHashStore(),
 		done: make(chan struct{}, 0),
 	}
 }
@@ -50,7 +50,7 @@ func (h *HashService) Stop() {
 	fmt.Println("Hash Service shutting down")
 	err := h.router.Shutdown()
 	if err != nil {
-		fmt.Println("ERROR: error while shutting down router: ", err)
+		fmt.Println("error while shutting down router: ", err)
 	}
 	fmt.Println("HTTP Server shutdown")
 

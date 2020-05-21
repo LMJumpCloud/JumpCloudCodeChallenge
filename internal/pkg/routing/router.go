@@ -23,6 +23,10 @@ type Router struct {
 	errChan chan error
 }
 
+type RouterStatsResponse struct {
+	StatsList []stats.Average `json:statsList`
+}
+
 // NewRouter returns a new instance of a router with no registered routes
 func NewRouter(port int) *Router {
 	router := &Router{
@@ -105,6 +109,8 @@ func (r *Router) ServeHTTP(writer http.ResponseWriter, req *http.Request) {
 		}
 	}
 
+	// All endpoints will return JSON
+	writer.Header().Add("Content-Type", "application/json")
 	r.mux.ServeHTTP(writer, req)
 	r.stats.AddCycleTime(fmt.Sprintf("%v %v", req.URL.Path, req.Method), time.Since(timer))
 }
@@ -115,8 +121,10 @@ func (r *Router) selfStatsHandler(writer http.ResponseWriter, req *http.Request)
 		return
 	}
 
-	avgs := r.stats.GetAverages()
-	jsonBytes, err := json.Marshal(avgs)
+	response := RouterStatsResponse{
+		StatsList: r.stats.GetAverages(),
+	}
+	jsonBytes, err := json.Marshal(response)
 	if err != nil {
 		fmt.Println(err)
 		writer.WriteHeader(503)

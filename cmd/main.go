@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/MondayHopscotch/JumpCloudCodeChallenge/internal/app"
+	"github.com/MondayHopscotch/JumpCloudCodeChallenge/internal/app/hash_service"
 	"os"
 	"os/signal"
 	"strconv"
@@ -21,7 +21,7 @@ func main() {
 		fmt.Println(fmt.Errorf("failed to parse `%v` as a port number", port))
 		os.Exit(1)
 	}
-	hashService := app.NewHashService(portInt)
+	hashService := hash_service.New(portInt)
 
 	ctrlC := make(chan os.Signal)
 	signal.Notify(ctrlC, os.Interrupt, syscall.SIGTERM)

@@ -19,14 +19,25 @@ easier. The tests as committed assume the service is running on port 8088
 
 ## Project Layout
 
+This project generally follows the pattern put forth in the [golang standards project layout](https://github.com/golang-standards/project-layout)
+
 ```
 root/
- ├─ cmd/         Houses the entrypoint(s) into the software
+ ├─ cmd/                     Houses the entrypoint(s) into the software
  ├─ internal/
- |     ├─ app/   Application-specific code, such as construction of service, endpoints, etc
- |     └─ pkg/   Reusable modules of code, such as string parsing
- └─ test/        External testing, namely Postman collection
+ |     ├─ app/
+ |     |   └─ hash_service/  Application-specific code, such as construction of service, endpoints, etc
+ |     └─ pkg/               Reusable modules of code, such as string parsing
+ └─ test/                    External testing, namely Postman collection
 ```
+
+#### Unit Tests
+
+This project uses a separate `tests/` directory next to the code being tested. This is a style of testing aimed at
+making sure that the public interface is the target of the tests. It has some pros and cons worth mentioning:
+* \+ This can make tests more resilient to changes within the package as long as the public interface does not change
+* \- This can make it hard to test edge cases that might be easily testable via private functions
+    * \+ This does not exclude authors from adding the standard test files as siblings to the files being tested when needed to overcome this limitation
 
 ## Design Decisions
 * Rather than only providing statistics for `POST`s against the `/hash` endpoint, my service will provide simple metrics for all endpoints
@@ -57,3 +68,10 @@ mechanism were to be introduced.
     * My tests indicate that the timing shown in the `/stats` endpoint are correct, but I dev on a Windows machine.
     * Timings show up as a zero-average, which I believe to be caused by the windows system clock resolution, which is less than that of linux.
 It should appear correctly on a linux machine.
+
+## Further Development
+
+* Rate Limiting
+    * There is not currently any rate limiting protecting the service from being overwhelmed
+* Character Set restrictions
+    * The endpoint currently accepts any string data. Explicitly supporting character sets would be a nice addition.
