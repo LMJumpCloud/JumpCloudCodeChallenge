@@ -23,7 +23,7 @@ const knownSHA512HashBase64 = "YjEwOWYzYmJiYzI0NGViODI0NDE5MTdlZDA2ZDYxOGI5MDA4Z
 func TestHashService(t *testing.T) {
 	t.Run("hash endpoint supports PUT", func(t *testing.T) {
 		port := 50123
-		service := hash.New(port)
+		service := hash.NewService(port)
 		go service.Start()
 
 		expectedID := 1
@@ -41,7 +41,7 @@ func TestHashService(t *testing.T) {
 
 	t.Run("able to retrieve hash", func(t *testing.T) {
 		port := 50124
-		service := hash.New(port)
+		service := hash.NewService(port)
 		go service.Start()
 
 		expectedID := 1
@@ -70,7 +70,7 @@ func TestHashService(t *testing.T) {
 
 	t.Run("test shutdown call", func(t *testing.T) {
 		port := 50125
-		service := hash.New(port)
+		service := hash.NewService(port)
 		go service.Start()
 
 		resp, err := http.Get(fmt.Sprintf("http://localhost:%v/shutdown", port))
@@ -94,7 +94,7 @@ func TestHashService(t *testing.T) {
 
 	t.Run("test stats call", func(t *testing.T) {
 		port := 50125
-		service := hash.New(port)
+		service := hash.NewService(port)
 		go service.Start()
 
 		resp, err := postPassword(input, port)

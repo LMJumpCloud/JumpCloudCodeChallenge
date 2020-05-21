@@ -21,7 +21,7 @@ func main() {
 		fmt.Println(fmt.Errorf("failed to parse `%v` as a port number", port))
 		os.Exit(1)
 	}
-	hashService := hash.New(portInt)
+	hashService := hash.NewService(portInt)
 
 	ctrlC := make(chan os.Signal)
 	signal.Notify(ctrlC, os.Interrupt, syscall.SIGTERM)

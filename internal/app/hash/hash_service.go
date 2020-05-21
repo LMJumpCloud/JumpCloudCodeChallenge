@@ -16,12 +16,13 @@ type Service struct {
 	done chan struct{}
 }
 
+// SimpleMessage is an object with a message
 type SimpleMessage struct {
 	Message string `json:message`
 }
 
-// New returns a new instance of Service
-func New(port int) *Service {
+// NewService returns a new instance of the hashing service
+func NewService(port int) *Service {
 	return &Service{
 		router:    routing.NewRouter(port),
 		hashStore: hashing.NewInMemoryHashStore(),
