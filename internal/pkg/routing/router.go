@@ -23,6 +23,7 @@ type Router struct {
 	errChan chan error
 }
 
+// RouterStatsResponse  is simple list of averages stats for router endpoints
 type RouterStatsResponse struct {
 	StatsList []stats.Average `json:statsList`
 }

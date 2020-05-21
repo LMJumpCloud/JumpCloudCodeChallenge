@@ -7,7 +7,7 @@
 
 #### Running the service
 To run the Hashing service, run the following command from the root of the project:
-```go run cmd/main.go <port>```
+```go run cmd/hash/main.go <port>```
 
 #### Running the tests
 To run the unit tests, run the following from the root of the project:
@@ -23,10 +23,11 @@ This project generally follows the pattern put forth in the [golang standards pr
 
 ```
 root/
- ├─ cmd/                     Houses the entrypoint(s) into the software
+ ├─ cmd/
+ |   └─ hash/                Contains entrypoint for Hashing Service
  ├─ internal/
  |     ├─ app/
- |     |   └─ hash_service/  Application-specific code, such as construction of service, endpoints, etc
+ |     |   └─ hash/          Application-specific code for Hashing service, such as construction of service, endpoints, etc
  |     └─ pkg/               Reusable modules of code, such as string parsing
  └─ test/                    External testing, namely Postman collection
 ```
@@ -50,6 +51,7 @@ on the service.
 * Hashes stored in-memory, though the service architecture will safely handle flushing to disc on shut-down if a different storage
 mechanism were to be introduced.
 * HTTP endpoint tests use the HTTP package directly running against an instance of the service
+* All endpoints return JSON objects on success to facilitate easy consumption of this API for other software
 
 ## Tools
 * **go mod** - Intended to help portability of repository, currently only specifies golang version due to only using the standard library

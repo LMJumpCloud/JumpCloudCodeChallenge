@@ -3,7 +3,7 @@ package tests
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/MondayHopscotch/JumpCloudCodeChallenge/internal/app/hash_service"
+	"github.com/MondayHopscotch/JumpCloudCodeChallenge/internal/app/hash"
 	"github.com/MondayHopscotch/JumpCloudCodeChallenge/internal/pkg/hashing"
 	"github.com/MondayHopscotch/JumpCloudCodeChallenge/internal/pkg/routing"
 	"github.com/MondayHopscotch/JumpCloudCodeChallenge/internal/pkg/test"
@@ -23,7 +23,7 @@ const knownSHA512HashBase64 = "YjEwOWYzYmJiYzI0NGViODI0NDE5MTdlZDA2ZDYxOGI5MDA4Z
 func TestHashService(t *testing.T) {
 	t.Run("hash endpoint supports PUT", func(t *testing.T) {
 		port := 50123
-		service := hash_service.New(port)
+		service := hash.New(port)
 		go service.Start()
 
 		expectedID := 1
@@ -41,7 +41,7 @@ func TestHashService(t *testing.T) {
 
 	t.Run("able to retrieve hash", func(t *testing.T) {
 		port := 50124
-		service := hash_service.New(port)
+		service := hash.New(port)
 		go service.Start()
 
 		expectedID := 1
@@ -70,7 +70,7 @@ func TestHashService(t *testing.T) {
 
 	t.Run("test shutdown call", func(t *testing.T) {
 		port := 50125
-		service := hash_service.New(port)
+		service := hash.New(port)
 		go service.Start()
 
 		resp, err := http.Get(fmt.Sprintf("http://localhost:%v/shutdown", port))
@@ -78,16 +78,23 @@ func TestHashService(t *testing.T) {
 		test.AssertEqual(t, resp.StatusCode, 200, "request accepted ok")
 
 		bodyBytes, err := ioutil.ReadAll(resp.Body)
-		test.AssertEqual(t, string(bodyBytes), "server shutting down", "body indicates shutdown started")
+		respObj := hash.SimpleMessage{}
+		err = json.Unmarshal(bodyBytes, &respObj)
+		test.AssertNil(t, err, "unmarshal should not error")
+		expected := hash.SimpleMessage{
+			Message: "server shutting down",
+		}
+		test.AssertEqual(t, respObj, expected, "should receive proper get response")
+		test.AssertEqual(t, respObj, expected, "body indicates shutdown started")
 		resp.Body.Close()
 
-		resp, err = postPassword("password", port)
+		resp, err = postPassword(input, port)
 		test.AssertNotNil(t, err, "HTTP should be rejected resulting in error")
 	})
 
 	t.Run("test stats call", func(t *testing.T) {
 		port := 50125
-		service := hash_service.New(port)
+		service := hash.New(port)
 		go service.Start()
 
 		resp, err := postPassword(input, port)

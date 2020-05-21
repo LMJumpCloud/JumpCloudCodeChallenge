@@ -1,23 +1,28 @@
-package hash_service
+package hash
 
 import (
+	"encoding/json"
 	"fmt"
-	"github.com/MondayHopscotch/JumpCloudCodeChallenge/internal/app/hash_service/endpoints"
+	"github.com/MondayHopscotch/JumpCloudCodeChallenge/internal/app/hash/endpoints"
 	"github.com/MondayHopscotch/JumpCloudCodeChallenge/internal/pkg/hashing"
 	"github.com/MondayHopscotch/JumpCloudCodeChallenge/internal/pkg/routing"
 	"net/http"
 )
 
-// HashService ties the router and the hash store together
-type HashService struct {
+// Service ties the router and the hash store together
+type Service struct {
 	router *routing.Router
 	hashStore *hashing.InMemoryHashStore
 	done chan struct{}
 }
 
-// New returns a new instance of HashService
-func New(port int) *HashService {
-	return &HashService{
+type SimpleMessage struct {
+	Message string `json:message`
+}
+
+// New returns a new instance of Service
+func New(port int) *Service {
+	return &Service{
 		router:    routing.NewRouter(port),
 		hashStore: hashing.NewInMemoryHashStore(),
 		done: make(chan struct{}, 0),
@@ -25,7 +30,7 @@ func New(port int) *HashService {
 }
 
 // Start will register all endpoints and start the HTTP server
-func (h *HashService) Start() {
+func (h *Service) Start() {
 	hashEndpoint := endpoints.HashEndpointForStore(h.hashStore)
 	h.router.RegisterPaths(map[string]http.HandlerFunc{
 		"/hash": hashEndpoint.HandlePost,
@@ -37,16 +42,24 @@ func (h *HashService) Start() {
 	<-h.done
 }
 
-func (h *HashService) shutdownHandler(writer http.ResponseWriter, req *http.Request) {
+func (h *Service) shutdownHandler(writer http.ResponseWriter, req *http.Request) {
+	resp := SimpleMessage{Message: "server shutting down"}
+	bytes, err := json.Marshal(resp)
+	if err != nil {
+		writer.WriteHeader(http.StatusInternalServerError)
+		writer.Write([]byte("failed to generate server shutdown message"))
+		return
+	}
+
 	writer.WriteHeader(http.StatusOK)
-	writer.Write([]byte("server shutting down"))
+	writer.Write(bytes)
 
 	// call this in a goroutine so this request can return correctly
 	go h.Stop()
 }
 
 // Stop shuts down the HTTP server gracefully and waits for all pending password hashes to finish
-func (h *HashService) Stop() {
+func (h *Service) Stop() {
 	fmt.Println("Hash Service shutting down")
 	err := h.router.Shutdown()
 	if err != nil {
