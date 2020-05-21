@@ -14,13 +14,13 @@ type HashStorer interface {
 
 // SubmitResponse is simple response from submitting a password for hashing
 type SubmitResponse struct {
-	ID int64 `json:id`
+	ID int64 `json:"id"`
 }
 
 // GetResponse is a simple response from getting a hash
 type GetResponse struct {
-	ID int64   `json:id`
-	Hash string `json:hash`
+	ID int64   `json:"id"`
+	Hash string `json:"hash"`
 }
 
 // InMemoryHashStore stores hashes an their ids in memory

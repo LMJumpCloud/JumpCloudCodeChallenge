@@ -18,7 +18,7 @@ type Service struct {
 
 // SimpleMessage is an object with a message
 type SimpleMessage struct {
-	Message string `json:message`
+	Message string `json:"message"`
 }
 
 // NewService returns a new instance of the hashing service

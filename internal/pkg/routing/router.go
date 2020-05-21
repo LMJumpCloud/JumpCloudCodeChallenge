@@ -25,7 +25,7 @@ type Router struct {
 
 // RouterStatsResponse  is simple list of averages stats for router endpoints
 type RouterStatsResponse struct {
-	StatsList []stats.Average `json:statsList`
+	StatsList []stats.Average `json:"statsList"`
 }
 
 // NewRouter returns a new instance of a router with no registered routes

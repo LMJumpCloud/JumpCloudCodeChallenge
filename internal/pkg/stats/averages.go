@@ -4,9 +4,9 @@ import "time"
 
 // Average is data around the average for a single item
 type Average struct {
-	Name        string `json:name`
-	Total       int    `json:total`
-	AvgMicroSec int64  `json:average`
+	Name        string `json:"name"`
+	Total       int    `json:"total"`
+	AvgMicroSec int64  `json:"average"`
 }
 
 // AverageTracker helps with keeping track of the averages of any number of items
